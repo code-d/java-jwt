@@ -176,6 +176,29 @@ public abstract class Algorithm {
     public static Algorithm HMAC256(byte[] secret) throws IllegalArgumentException {
         return new HMACAlgorithm("HS256", "HmacSHA256", secret);
     }
+    
+    /**
+     * Creates a new Algorithm instance using SHA256withECDSA. Tokens specify this as "ES256K".
+     *
+     * @param keyProvider the provider of the Public Key and Private Key for the verify and signing instance.
+     * @return a valid ECDSA256 Algorithm.
+     * @throws IllegalArgumentException if the Key Provider is null.
+     */
+    public static Algorithm ECDSA256K(ECDSAKeyProvider keyProvider) throws IllegalArgumentException {
+        return new ECDSAAlgorithm("ES256K", "SHA256withECDSA", 32, keyProvider);
+    }
+    
+    /**
+     * Creates a new Algorithm instance using SHA256withECDSA. Tokens specify this as "ES256K".
+     *
+     * @param publicKey  the key to use in the verify instance.
+     * @param privateKey the key to use in the signing instance.
+     * @return a valid ECDSA256 Algorithm.
+     * @throws IllegalArgumentException if the provided Key is null.
+     */
+    public static Algorithm ECDSA256K(ECPublicKey publicKey, ECPrivateKey privateKey) throws IllegalArgumentException {
+        return ECDSA256K(ECDSAAlgorithm.providerForKeys(publicKey, privateKey));
+    }
 
     /**
      * Creates a new Algorithm instance using HmacSHA384. Tokens specify this as "HS384".

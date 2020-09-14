@@ -12,6 +12,8 @@ import org.junit.rules.ExpectedException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.ECKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAKey;
 import java.util.Date;
 
@@ -26,9 +28,11 @@ public class JWTTest {
     private static final String PRIVATE_KEY_FILE_RSA = "src/test/resources/rsa-private.pem";
 
     private static final String PUBLIC_KEY_FILE_EC_256 = "src/test/resources/ec256-key-public.pem";
+    private static final String PUBLIC_KEY_FILE_EC_256K = "src/test/resources/ec256k-key-public.pem";
     private static final String PUBLIC_KEY_FILE_EC_384 = "src/test/resources/ec384-key-public.pem";
     private static final String PUBLIC_KEY_FILE_EC_512 = "src/test/resources/ec512-key-public.pem";
     private static final String PRIVATE_KEY_FILE_EC_256 = "src/test/resources/ec256-key-private.pem";
+    private static final String PRIVATE_KEY_FILE_EC_256K = "src/test/resources/ec256k-key-private.pem";
     private static final String PRIVATE_KEY_FILE_EC_384 = "src/test/resources/ec384-key-private.pem";
     private static final String PRIVATE_KEY_FILE_EC_512 = "src/test/resources/ec512-key-private.pem";
 
@@ -494,7 +498,27 @@ public class JWTTest {
                 .build();
         assertThat(verified, is(notNullValue()));
     }
+    
+    @Test
+    public void shouldCreateAnEmptyECDSA256KSignedToken() throws Exception {
+        ECPublicKey publicKey = (ECPublicKey) PemUtils.readPublicKeyFromFile(PUBLIC_KEY_FILE_EC_256K, "EC");
+        ECPrivateKey privateKey = (ECPrivateKey) PemUtils.readPrivateKeyFromFile(PRIVATE_KEY_FILE_EC_256K, "EC");
 
+        String signed = JWT.create().sign(Algorithm.ECDSA256K(publicKey, privateKey));
+
+        assertThat(signed, is(notNullValue()));
+        
+        String[] parts = signed.split("\\.");
+        String headerJson = new String(Base64.decodeBase64(parts[0]), StandardCharsets.UTF_8);
+        assertThat(headerJson, JsonMatcher.hasEntry("alg", "ES256K"));
+        assertThat(headerJson, JsonMatcher.hasEntry("typ", "JWT"));
+        assertThat(parts[1], is("e30"));
+        
+        JWTVerifier verified = JWT.require(Algorithm.ECDSA256K(publicKey, privateKey))
+                .build();
+        assertThat(verified, is(notNullValue()));
+    }
+    
     @Test
     public void shouldCreateAnEmptyECDSA384SignedToken() throws Exception {
         String signed = JWT.create().sign(Algorithm.ECDSA384((ECKey) PemUtils.readPrivateKeyFromFile(PRIVATE_KEY_FILE_EC_384, "EC")));
